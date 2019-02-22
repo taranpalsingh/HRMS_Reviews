@@ -1,8 +1,8 @@
 console.log("Starting Reviews JS");
 const PORT = 3000;
 
-const lodash = require('lodash');
 const sql = require('mssql');
+const lodash = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
 // const bcrypt = require('bcrypt');
@@ -17,9 +17,14 @@ var sqlConfig = {
     database: 'hrm'
 }
 
-// GET all
-app.get('/',async function (req, res) {
+// GET all Reviews
+app.get('/AllReviews',async function (req, res) {
 
+    // var token = await jwt.verify(req.get('x-auth-token'),config.get('jwtPrivateKey'));
+    // if(!token){
+    //   alert("You are not authorized.");
+    //   window.location.href = "Login Page"; // Redirect
+    // }
     sql.connect(sqlConfig, function() {
 
         var request = new sql.Request();
@@ -27,42 +32,34 @@ app.get('/',async function (req, res) {
             if(err) console.log(err);
             // res.end(JSON.stringify(recordset));
             console.log(recordset.recordset);
-            res.send(recordset.recordset);
+            // res.send(recordset.recordset);
+            rres.send("OK");
             sql.close();
         });
     });
 });
 
 
-//login request
-// app.post('/login', (req,res) => {
-//   console.log(req.body.username);
-//   console.log(req.body.password);
-//   res.send("OK");
-// });
-// app.listen(PORT);
 
 
 //*************    post a new review
-app.post('/',  function(req,res){
-    // token check
-    // role of the user API
-     //    myOBJ = {
-     //      "ProjectId": 1,
-     //      "Content": "Awesome",
-     //      "Rating": 8,
-     //      "RevieweeId": 4,
-     //      "ReviewerId": 6
-     // }
+app.post('/Review/',  function(req,res){
+
+
+  // var token = await jwt.verify(req.get('x-auth-token'),config.get('jwtPrivateKey'));
+  // if(!token){
+  //   alert("You are not authorized.");
+  //   window.location.href = "Login Page"; // Redirect
+  // }
+
     console.log(req.body.Content);
     sql.connect(sqlConfig, function() {
 
         var request = new sql.Request();
         request.query("Insert into Reviews values( " + req.body.ProjectId + ", \' " + req.body.Content + " \' ," + req.body.Rating + "," + req.body.RevieweeId + "," + req.body.ReviewerId + " );" , function(err, recordset) {
-            if(err) console.log(err);
-            // res.end(JSON.stringify(recordset));
-            console.log("OK");
-            sql.close();
+        if(err) console.log(err);
+        res.end("Created");
+        sql.close();
         });
     });
     res.send("OK");
@@ -70,11 +67,18 @@ app.post('/',  function(req,res){
 
 
 ////*************    get all reviews for RevieweeId
-app.get('/reviewee/:id', async function (req,res) {
+app.post('/reviewee/', async function (req,res) {
+
+  // var token = await jwt.verify(req.get('x-auth-token'),config.get('jwtPrivateKey'));
+  // if(!token){
+  //   alert("You are not authorized.");
+  //   window.location.href = "Login Page"; // Redirect
+  // }
+
   sql.connect(sqlConfig, function() {
 
       var request = new sql.Request();
-      request.query('Select * from Reviews where RevieweeId = ' + req.params.id, function(err, recordset) {
+      request.query('Select * from Reviews where ProjectId = ' + req.body.ProjectId + 'and RevieweeId = ' + req.body.RevieweeId , function(err, recordset) {
           if(err) console.log(err);
           console.log(recordset.recordset);
           res.send(recordset.recordset);
@@ -85,11 +89,18 @@ app.get('/reviewee/:id', async function (req,res) {
 
 
 ////*************    get all reviews for ReviewerId
-app.get('/reviewer/:id', async function (req,res) {
+app.post('/reviewer/', async function (req,res) {
+
+  // var token = await jwt.verify(req.get('x-auth-token'),config.get('jwtPrivateKey'));
+  // if(!token){
+  //   alert("You are not authorized.");
+  //   window.location.href = "Login Page"; // Redirect
+  // }
+
   sql.connect(sqlConfig, function() {
 
       var request = new sql.Request();
-      request.query('Select * from Reviews where ReviewerId = ' + req.params.id, function(err, recordset) {
+      request.query('Select * from Reviews where ReviewerId = ' +req.body.ReviewerId + 'and ProjectId = ' + req.body.ProjectId, function(err, recordset) {
           if(err) console.log(err);
           console.log(recordset.recordset);
           res.send(recordset.recordset);
@@ -98,37 +109,62 @@ app.get('/reviewer/:id', async function (req,res) {
   });
 });
 
-////*************    get average rating for reviewee
-app.get('/ratings/:id', async function (req,res) {
+////*************    get average rating for reviewee for a particular Project
+app.post('/ratings/', async function (req,res) {
+  // var token = await jwt.verify(req.get('x-auth-token'),config.get('jwtPrivateKey'));
+  // if(!token){
+  //   alert("You are not authorized.");
+  //   window.location.href = "Login Page"; // Redirect
+  // }
+
   sql.connect(sqlConfig, function() {
 
       var request = new sql.Request();
-      request.query('Select * from Reviews where RevieweeId = ' + req.params.id, function(err, recordset) {
+      request.query('Select * from Reviews where RevieweeId = ' + req.body.RevieweeId +'and ProjectId = ' + req.body.ProjectId, function(err, recordset) {
+          if(err) console.log(err);
+          result = recordset.recordset;
+          console.log("average: " + result[0].Rating);
+          res.send("average: " +  result[0].Rating);
+          sql.close();
+      });
+    });
+});
+
+
+////*************    get average rating for all employees ADMIN Page
+app.post('/Allratings/', async function (req,res) {
+  // var token = await jwt.verify(req.get('x-auth-token'),config.get('jwtPrivateKey'));
+  // if(!token){
+  //   alert("You are not authorized.");
+  //   window.location.href = "Login Page"; // Redirect
+  // }
+
+  sql.connect(sqlConfig, function() {
+
+      var request = new sql.Request();
+      request.query('Select * from Reviews where RevieweeId = ' + req.body.RevieweeId , function(err, recordset) {
           if(err) console.log(err);
           result = recordset.recordset;
           console.log(result);
           var avg = 0;
+          if(result.length == 0){
+            // alert("Please Enter a valid ID");
+            res.send("Please Enter a valid ID");
+          }
           for(var i=0; i<result.length; i++){
             avg = avg + result[i].Rating;
           }
-          avg = avg/result.length;
-          console.log("average: "+avg);
-          res.send(JSON.parse({avg}));
+          avg = avg / (result.length);
+          console.log("average: " + avg);
+          res.send("average: " + avg);
           sql.close();
       });
-  });
+    });
 });
 
-
-
-
-// app.listen(PORT,() => {
-//   console.log('server started on' + PORT);
-// });
-
 var server = app.listen(PORT, function () {
-    var host = server.address().address
-    var port = server.address().port
 
-    console.log("app listening at http://%s:%s", host, port)
+    var host = server.address().address;
+    var port = server.address().port;
+    console.log("app listening at http://%s:%s", host, port);
 });
