@@ -5,6 +5,7 @@ $(document).ready(()=>{
     const project = e.target.innerHTML;
 
     ///AJAX CALL for that project
+    $()
 
     const data = [
       {"name":"KB","role":"Team Lead","email":"test@abc.com"},
@@ -65,6 +66,8 @@ $(document).ready(()=>{
 
             body[0].appendChild(txtarea);
 
+            executeThis(1,1);
+
             var rating = document.createElement('div');
 
 
@@ -73,6 +76,8 @@ $(document).ready(()=>{
             txt.appendChild(scoretext);
             txt.setAttribute("id","rating-text");
             rating.appendChild(txt);
+
+
 
             var slider = document.createElement('input');
             slider.setAttribute('type','range');
@@ -92,7 +97,7 @@ $(document).ready(()=>{
 
 
 
-
+            //postReview(proId,revID,review);
 
             var button = document.createElement('button');
             var textNode = document.createTextNode("Submit");
@@ -110,7 +115,6 @@ $(document).ready(()=>{
             body[0].appendChild(button);
 
 
-
             $('#reset').click((e)=>{
               console.log("clear");
               document.getElementById("txt").value=""
@@ -123,3 +127,70 @@ $(document).ready(()=>{
             });
   });
 });
+
+
+function executeThis(proId,reviId)
+{
+
+   console.log("reached");
+  var user;
+  myData = {
+    "RevieweeId":proId,
+    "ProjectId":reviId
+  };
+
+$.ajax({
+
+						          type: 'POST',
+						          data: JSON.stringify(myData),
+				              contentType: 'application/json',
+                        url: 'http://localhost:3000/reviewee',
+                        success: function(data) {
+                            console.log('success');
+                            // console.log(JSON.stringify(data));
+                            user = JSON.stringify(data);
+                            console.log(user);
+                            var x=document.getElementById("txt")
+                          x.innerHTML=data[0].Content;
+
+                            // console.log(user);
+                        }
+
+      });
+      // console.log(user);
+
+    }
+
+
+    function postReview(proId,revId,review)
+    {
+      console.log("jfyg");
+
+      myData = {
+      "ProjectId":proId,
+      //"Content":document.getElementById("txt").value,
+      "RevieweeId":revId,
+      "Content":review
+    };
+
+    $.ajax({
+
+    						          type: 'POST',
+    						          data: JSON.stringify(myData),
+    				              contentType: 'application/json',
+                            url: 'http://localhost:3000/updateReview',
+                            success: function(data) {
+                                console.log("should update now");
+                                // console.log(JSON.stringify(data));
+                                // user = JSON.stringify(data);
+                                // console.log(user);
+                                // var x=document.getElementById("txt")
+                                // x.innerHTML=data[0].Content;
+
+                                // console.log(user);
+                            }
+
+          });
+          // console.log(user);
+
+        }
