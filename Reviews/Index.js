@@ -15,6 +15,8 @@ app.use(function(req, res, next) {
   next();
 });
 
+var result1;
+
 var sqlConfig = {
     user: 'sa',
     password: 'Sahil1234',
@@ -145,24 +147,51 @@ app.post('/Allratings/', async function (req,res) {
   //   window.location.href = "Login Page"; // Redirect
   // }
 
+
   sql.connect(sqlConfig, function() {
 
       var request = new sql.Request();
-      request.query('Select * from Reviews where RevieweeId = ' + req.body.RevieweeId , function(err, recordset) {
+      request.query('Select * from Reviews ' , function(err, recordset) {
           if(err) console.log(err);
+          // console.log(recordset);
+
           result = recordset.recordset;
-          console.log(result);
-          var avg = 0;
-          if(result.length == 0){
-            // alert("Please Enter a valid ID");
-            res.send("Please Enter a valid ID");
+          // console.log(result);
+
+          const s = new Set();
+          // console.log(s);
+          for(var i=0; i<result.length; i++){       // To store the Id of all the Developers
+              s.add(String(result[i].RevieweeId));
+              // console.log(String(result[i].RevieweeId));
           }
-          for(var i=0; i<result.length; i++){
-            avg = avg + result[i].Rating;
+          var EmployeeCode = Array.from(s);
+          var avgRatings = [];
+          for(var i=0; i<EmployeeCode.length; i++){
+            var avg = 0, n=0;
+
+            for(var j=0; j<result.length; j++){
+              if(EmployeeCode[i] == String(result[j].RevieweeId)){
+                // console.log(EmployeeCode[i]);
+                // console.log(result[j]);
+                n++;
+                avg = avg + result[j].Rating;
+
+              }
+            }
+            avgRatings[i] = avg/n;
+
+
           }
-          avg = avg / (result.length);
-          console.log("average: " + avg);
-          res.send("average: " + avg);
+          console.log("Table");
+          console.log(EmployeeCode);
+          console.log(avgRatings);
+          var myOBJ = {
+            EmployeeCode,
+            avgRatings
+          };
+          console.log(myOBJ);
+          console.log(typeof myOBJ);
+          res.send(myOBJ);
           sql.close();
       });
     });
